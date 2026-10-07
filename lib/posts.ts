@@ -1,8 +1,13 @@
-import fs from "fs";
-import path from "path";
-import matter from "gray-matter";
+import { cache } from "react";
+import { readMarkdownCollection } from "@/lib/content";
 
-const postsDirectory = path.join(process.cwd(), "content/blog");
+type PostFrontmatter = {
+  title: string;
+  date: string;
+  description: string;
+  tags: string[];
+  draft: boolean;
+};
 
 export type Post = {
   slug: string;
@@ -14,51 +19,23 @@ export type Post = {
   draft?: boolean;
 };
 
-/** Drafts (frontmatter `draft: true`) are only visible outside production */
-const isVisible = (draft?: boolean) =>
-  !draft || process.env.NODE_ENV !== "production";
-
-function readPost(fileName: string): Post {
-  const slug = fileName.replace(/\.md$/, "");
-  const fullPath = path.join(postsDirectory, fileName);
-  const fileContents = fs.readFileSync(fullPath, "utf8");
-  const { data, content } = matter(fileContents);
-
-  return {
-    slug,
-    title: data.title || "",
-    date: data.date || "",
-    description: data.description || "",
-    content,
-    tags: data.tags || [],
-    draft: data.draft === true
-  };
-}
-
-export function getAllPosts(): Post[] {
-  if (!fs.existsSync(postsDirectory)) {
-    return [];
-  }
-
-  return fs
-    .readdirSync(postsDirectory)
-    .filter((fileName) => fileName.endsWith(".md"))
-    .map(readPost)
-    .filter((post) => isVisible(post.draft))
+/** Every visible post, newest first; cached per request */
+export const getAllPosts = cache(function getAllPosts(): Post[] {
+  return readMarkdownCollection<PostFrontmatter>("blog")
+    .map(({ slug, data, content }) => ({
+      slug,
+      title: data.title || "",
+      date: data.date || "",
+      description: data.description || "",
+      content,
+      tags: data.tags || [],
+      draft: data.draft === true
+    }))
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-}
+});
 
-export async function getPostBySlug(slug: string): Promise<Post | null> {
-  // Slug comes from the URL; reject anything that could traverse the filesystem
-  if (!/^[a-z0-9-]+$/i.test(slug)) return null;
-  const fileName = `${slug}.md`;
-
-  if (!fs.existsSync(path.join(postsDirectory, fileName))) {
-    return null;
-  }
-
-  const post = readPost(fileName);
-  return isVisible(post.draft) ? post : null;
+export function getPostBySlug(slug: string): Post | null {
+  return getAllPosts().find((post) => post.slug === slug) ?? null;
 }
 
 export function getAllPostSlugs(): string[] {

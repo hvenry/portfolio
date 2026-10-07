@@ -1,37 +1,53 @@
 "use client";
 
-import { useMemo, useState, useEffect, useRef } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { FaYoutube } from "react-icons/fa";
+import { Suspense, useMemo, useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { PiMagnifyingGlass, PiX } from "react-icons/pi";
-import { buildTechQuery } from "@/lib/techFilter";
-import TechBadge, { getTechIcon } from "@/components/TechBadge";
-import Panel from "@/components/Panel";
-import ProjectImage from "@/components/ProjectImage";
+import type { ProjectSummary } from "@/lib/projects";
+import { buildTechQuery, parseTechFilter } from "@/lib/techFilter";
+import { getTechIcon } from "@/components/TechBadge";
+import TechBadgeRows from "@/components/TechBadgeRows";
+import ProjectCard from "@/components/ProjectCard";
 
-export interface ProjectCard {
-  slug: string;
-  title: string;
-  bodyTitle: string;
-  summary: string;
-  technologies: string[];
-  youtube?: string;
-  image?: string;
-  imageLight?: string;
+type ProjectsIndexProps = {
+  projects: ProjectSummary[];
+};
+
+/**
+ * Filterable project grid. The `tech` filter lives in the URL so it can be
+ * shared. Reading it needs `useSearchParams`, which would otherwise opt the
+ * page out of static rendering, so the prerendered HTML shows the unfiltered
+ * grid and the URL's filter applies once the page hydrates.
+ */
+export default function ProjectsIndex({ projects }: ProjectsIndexProps) {
+  return (
+    <Suspense
+      fallback={
+        <ProjectsIndexContent projects={projects} selectedTech={null} />
+      }
+    >
+      <UrlFilteredProjectsIndex projects={projects} />
+    </Suspense>
+  );
 }
 
-interface ProjectsIndexProps {
-  projects: ProjectCard[];
-  initialTech: string | null;
+function UrlFilteredProjectsIndex({ projects }: ProjectsIndexProps) {
+  const searchParams = useSearchParams();
+  const selectedTech = parseTechFilter(searchParams.get("tech"));
+  return (
+    <ProjectsIndexContent projects={projects} selectedTech={selectedTech} />
+  );
 }
 
-export default function ProjectsIndex({
+/** Next.js syncs `useSearchParams` with history updates, without a server round trip */
+function replaceTechInUrl(tech: string | null) {
+  window.history.replaceState(null, "", `/projects${buildTechQuery(tech)}`);
+}
+
+function ProjectsIndexContent({
   projects,
-  initialTech
-}: ProjectsIndexProps) {
-  const router = useRouter();
-  const [selectedTech, setSelectedTech] = useState<string | null>(initialTech);
+  selectedTech
+}: ProjectsIndexProps & { selectedTech: string | null }) {
   const [search, setSearch] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const searchBoxRef = useRef<HTMLDivElement>(null);
@@ -64,17 +80,6 @@ export default function ProjectsIndex({
     );
   }, [projects, selectedTech]);
 
-  // Keep the filter shareable via the URL
-  const query = buildTechQuery(selectedTech);
-  const isFirstRender = useRef(true);
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-    router.replace(`/projects${query}`, { scroll: false });
-  }, [query, router]);
-
   // Close the dropdown on outside click
   useEffect(() => {
     const onMouseDown = (event: MouseEvent) => {
@@ -87,13 +92,13 @@ export default function ProjectsIndex({
   }, []);
 
   const selectTech = (tech: string) => {
-    setSelectedTech(tech);
+    replaceTechInUrl(tech);
     setSearch("");
     setDropdownOpen(false);
   };
 
   const toggleTech = (tech: string) => {
-    setSelectedTech((prev) => (prev === tech ? null : tech));
+    replaceTechInUrl(selectedTech === tech ? null : tech);
   };
 
   const SelectedIcon = selectedTech ? getTechIcon(selectedTech) : null;
@@ -175,7 +180,7 @@ export default function ProjectsIndex({
             <button
               type="button"
               aria-label={`Remove ${selectedTech} filter`}
-              onClick={() => setSelectedTech(null)}
+              onClick={() => replaceTechInUrl(null)}
               className="cursor-pointer transition-opacity hover:opacity-60"
             >
               <PiX className="size-4" />
@@ -193,7 +198,7 @@ export default function ProjectsIndex({
           </p>
           <button
             type="button"
-            onClick={() => setSelectedTech(null)}
+            onClick={() => replaceTechInUrl(null)}
             className="link mt-3 text-sm"
           >
             Clear filter
@@ -202,62 +207,13 @@ export default function ProjectsIndex({
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {visibleProjects.map((project) => (
-            <Panel
-              key={project.slug}
-              interactive
-              className="panel-ticks-hover flex flex-col"
-            >
-              {/* Whole-card click target; interactive children sit above it at z-10 */}
-              <Link
-                href={`/projects/${project.slug}`}
-                aria-label={`${project.title} writeup`}
-                className="absolute inset-0"
+            <ProjectCard key={project.slug} project={project}>
+              <TechBadgeRows
+                technologies={project.technologies}
+                selectedTech={selectedTech}
+                onToggle={toggleTech}
               />
-              <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-2.5">
-                <span className="font-display text-lg font-medium tracking-wide text-foreground sm:text-xl">
-                  {project.title}
-                </span>
-                {project.youtube && (
-                  <a
-                    href={project.youtube}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="YouTube"
-                    className="link-quiet relative z-10"
-                  >
-                    <FaYoutube className="size-5" />
-                  </a>
-                )}
-              </div>
-              {project.image && (
-                <ProjectImage
-                  image={project.image}
-                  imageLight={project.imageLight}
-                  alt={project.title}
-                  className="aspect-[1200/630] w-full border-b border-line bg-background object-contain"
-                />
-              )}
-              <div className="flex flex-1 flex-col px-4 py-3">
-                <p className="text-sm font-medium text-foreground">
-                  {project.bodyTitle}
-                </p>
-                <p className="mt-1 text-sm leading-relaxed text-subtle">
-                  {project.summary}
-                </p>
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {project.technologies.map((tech) => (
-                    <TechBadge
-                      key={tech}
-                      name={tech}
-                      size="sm"
-                      selected={selectedTech === tech}
-                      onClick={() => toggleTech(tech)}
-                      className="relative z-10"
-                    />
-                  ))}
-                </div>
-              </div>
-            </Panel>
+            </ProjectCard>
           ))}
         </div>
       )}

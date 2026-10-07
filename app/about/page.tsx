@@ -1,6 +1,5 @@
 import { PiInfo } from "react-icons/pi";
-import { clubs } from "@/data";
-import { education } from "@/data";
+import { getExperience } from "@/lib/experience";
 import ExperienceCard from "@/components/ExperienceCard";
 import PageHeader from "@/components/PageHeader";
 import SectionHeading from "@/components/SectionHeading";
@@ -19,9 +18,9 @@ export default function Page() {
         description="Some information about my formal education in computer science and my involvement in clubs."
       />
       <SectionHeading className="mt-10 mb-4">Education</SectionHeading>
-      <ExperienceCard info={education} />
+      <ExperienceCard info={getExperience("education")} />
       <SectionHeading className="mt-8 mb-4">Club Involvement</SectionHeading>
-      <ExperienceCard info={clubs} />
+      <ExperienceCard info={getExperience("club")} />
     </main>
   );
 }

@@ -31,6 +31,40 @@
   --nav-dim: 0.78;
 }
 
+/* Code block palette (components/BlogContent.tsx). Dark is the default,
+   matching the tokens above; light mirrors each hue at reading strength. */
+:root {
+  --code-bg: #0a0a0a;
+  --code-header-bg: #18181b;
+  --code-border: #3f3f46;
+  --code-label: #71717a;
+  --code-fg: #e5e7eb;
+  --code-plain: #a1a1aa;
+  --code-comment: #6b7280;
+  --code-blue: #7dd3fc;
+  --code-cyan: #22d3ee;
+  --code-pink: #f472b6;
+  --code-amber: #fbbf24;
+  --code-red: #f87171;
+  --code-green: #4ade80;
+}
+
+[data-theme="light"] {
+  --code-bg: #fafafa;
+  --code-header-bg: #f4f4f5;
+  --code-border: #d4d4d8;
+  --code-label: #71717a;
+  --code-fg: #18181b;
+  --code-plain: #3f3f46;
+  --code-comment: #6b7280;
+  --code-blue: #0369a1;
+  --code-cyan: #0e7490;
+  --code-pink: #be185d;
+  --code-amber: #b45309;
+  --code-red: #b91c1c;
+  --code-green: #15803d;
+}
+
 /* ─── Base ─── */
 body {
   color: rgb(var(--foreground));
@@ -50,7 +84,7 @@ body {
   outline-offset: 2px;
 }
 
-/* ─── Shared link styles ─── */
+/* ─── Shared link and text styles ─── */
 @layer components {
   .link {
     @apply text-foreground underline underline-offset-4 transition-opacity hover:opacity-70;
@@ -63,6 +97,10 @@ body {
   }
   .link-hover {
     @apply font-medium text-foreground underline-offset-4 hover:underline;
+  }
+  /* Body paragraph under headings and cards */
+  .body-copy {
+    @apply text-base leading-relaxed text-subtle sm:text-lg;
   }
 }
 
@@ -77,13 +115,17 @@ body {
     box-shadow: 0 0 64px rgb(var(--foreground) / 0.12);
   }
 
-  /* Dashed hairline with real dash geometry (border-dashed at 1px reads as dots) */
-  .rule-dashed {
-    background-image: repeating-linear-gradient(
-      90deg,
-      rgb(var(--foreground) / 0.4) 0 8px,
-      transparent 8px 14px
+  /* Dotted hairline. The tile is as tall as one dot, so the radial gradient
+     renders a round 2px dot every 7px rather than a clipped square. */
+  .rule-dotted {
+    background-image: radial-gradient(
+      circle,
+      rgb(var(--foreground) / 0.35) 1px,
+      transparent 1px
     );
+    background-size: 7px 2px;
+    background-position: 0 50%;
+    background-repeat: repeat-x;
   }
 
   .scrollbar-hide::-webkit-scrollbar {
@@ -172,9 +214,6 @@ body {
   .reveal-3 {
     animation-delay: 0.18s;
   }
-  .reveal-4 {
-    animation-delay: 0.24s;
-  }
 }
 @keyframes reveal {
   from {
@@ -201,10 +240,11 @@ body {
 /* Mermaid diagrams (rendered by components/Mermaid.tsx)
 
    Mermaid sizes its SVG to the container width and preserves the aspect ratio,
-   and the article column is only ~656px wide. That cuts both ways: a diagram
-   taller than it is wide never scales down and renders at full height, while a
-   very wide, flat one is squeezed until the text is unreadable. Author diagrams
-   at roughly 1.5:1 to 2.5:1 (width:height) to stay legible here. */
+   and the article fills the site column (~680px at md, ~960px on a 1920px
+   screen). That cuts both ways: a diagram taller than it is wide never scales
+   down and renders at full height, while a very wide, flat one is squeezed
+   until the text is unreadable on narrow screens. Author diagrams at roughly
+   1.5:1 to 2.5:1 (width:height) to stay legible everywhere. */
 .mermaid-diagram svg {
   height: auto;
   max-width: 100%;
@@ -343,7 +383,7 @@ code[class*="language-"] {
 }
 
 .prose pre {
-  background: #0a0a0a !important;
+  background: var(--code-bg) !important;
   padding: 0 !important;
   margin: 0 !important;
   border: none !important;

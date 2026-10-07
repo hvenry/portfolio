@@ -95,9 +95,7 @@ const TabsContainer = () => {
                           {tool.name}
                         </a>
                       </div>
-                      <p className="text-sm leading-relaxed text-subtle sm:text-base">
-                        {tool.description}
-                      </p>
+                      <p className="body-copy">{tool.description}</p>
                     </li>
                   );
                 })}

@@ -19,39 +19,40 @@ order: 99
 # youtube: "https://youtu.be/..."          # any demo video (Loom works too)
 # image: "project_name.png"                # public/assets/images/projects/, 1200x630 (OG size)
 # imageLight: "project_name_light.png"     # optional light-mode variant, swaps with the theme
-# year: "2026"                             # or "2024 – 2025"
-# role: "Solo project"                     # or "Team of 5, backend + ML"
-# featured: 1                              # 1–3 = position on the home page grid
 # draft: true                              # hidden in production, visible in dev
 ---
 
-Open on the interesting _problem_, not a feature list: the difficulty that
-made this worth building. The card summary already did the pitch; someone who
-clicked in wants the mechanism.
+**TODO (Henry):** 1-3 short paragraphs on why you built it, the itch it scratched, and the interesting problem. Agents leave this for you.
 
-Then explain how it was solved, in prose. Write until the interesting part is
-actually explained (usually 400–1200 words for real engineering), then stop.
-Bullets are for genuinely enumerable things; paragraphs carry explanation.
-Join clauses with a period, comma, colon, or parentheses, never an em dash.
+## Project Name Overview
 
-Name sections after what the project contains: `## Architecture`,
-`## The loop`, `## Game modes`, whatever fits. See `globe-expert.md` and
-`simple-shell.md` for the standard.
+- What it does, in one line
+- The core mechanism, in one line
+- **Where it runs:** where it runs or is live
 
-## The full toolkit
+```mermaid
+flowchart LR
+  A["input"] --> B["the core step"] --> C["output"]
+```
 
-Mermaid diagrams render from a fenced block tagged `mermaid` (any type: `flowchart`,
-`sequenceDiagram`, `stateDiagram-v2`, `erDiagram`), themed to the site and
-re-rendered on theme toggle. Quote node labels so punctuation is safe.
+## How it works
 
-LaTeX renders inline with `$...$` and as display math with `$$...$$`. Tables,
-syntax-highlighted code blocks, blockquotes, and links all work.
+One sentence of setup, then short bullets, one idea each:
 
-## Where it stops
+- Rename this section to what it contains (`## The loop`, `## How the globe does its magic`)
+- Use `###` for genuinely separate subsystems
+- Tables for enumerable facts (specs, settings, options); one or two code blocks of ten lines max
+- LaTeX (`$...$`, `$$...$$`) only when the formula is the point
+- Link other writeups relatively: `[homelab](/projects/hvenrylab)`, never the full URL
 
-What it does not do, and what the next version would need. Optional, but
-honesty about the edges reads as competence.
+## What I tried
 
-## Background
+- **First approach:** what happened, and why it was dropped
+- **What replaced it:** why it held up, with a number if you measured it
 
-Where it came from, what it was built on, credit to sources.
+## Where it stops and next steps
+
+- What it does not do
+- What the next version would need
+
+**TODO (Henry):** a closing paragraph, no heading: where it came from, what it built on, credit to sources, how it feels to use.

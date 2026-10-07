@@ -10,11 +10,13 @@ export default function SectionHeading({
   className = ""
 }: SectionHeadingProps) {
   return (
-    <div className={`flex items-center gap-4 px-2 ${className}`}>
-      <h2 className="whitespace-nowrap font-display text-2xl font-medium tracking-wide text-foreground sm:text-3xl">
+    <div className={`flex items-end gap-4 px-2 ${className}`}>
+      <h2 className="whitespace-nowrap font-display text-xl font-medium tracking-wide text-subtle sm:text-2xl">
         {children}
       </h2>
-      <div aria-hidden className="rule-dashed h-px flex-1" />
+      {/* Oswald puts the baseline on the line box's bottom edge, so items-end
+          alone lands the dots on the text's baseline */}
+      <div aria-hidden className="rule-dotted h-[2px] flex-1" />
     </div>
   );
 }

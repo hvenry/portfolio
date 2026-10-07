@@ -1,8 +1,11 @@
 {
-  "name": "henry-vendittelli-portfolio",
+  "name": "portfolio",
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@10.14.0",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "dev": "next dev",
     "postinstall": "prisma generate",
@@ -13,6 +16,7 @@
     "type-check": "next typegen && tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "test": "node --test \"lib/**/*.test.ts\"",
     "test:e2e": "playwright test"
   },
   "dependencies": {
@@ -33,7 +37,7 @@
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-draggable": "^4.4.6",
-    "react-icons": "^5.2.1",
+    "react-icons": "^5.7.0",
     "react-markdown": "^10.1.0",
     "react-syntax-highlighter": "^16.1.0",
     "rehype-katex": "^7.0.1",

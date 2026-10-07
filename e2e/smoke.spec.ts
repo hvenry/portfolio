@@ -18,11 +18,33 @@ for (const route of routes) {
   });
 }
 
+// Experience cards and page copy keep their fields in a leading Field/Value
+// table (lib/fieldTable.ts); a parsing regression would leak it into the page
+test("home intro and work cards render from markdown", async ({ page }) => {
+  await page.goto("/");
+  const main = page.locator("main");
+  await expect(
+    main.getByRole("link", { name: "reach out" }).first()
+  ).toHaveAttribute("href", "/reach-out");
+  await expect(main.getByText(/^\[ .+ \]$/).first()).toBeVisible();
+  await expect(main).not.toContainText(/\|\s*Field\s*\|/);
+});
+
+test("education and club cards render from markdown", async ({ page }) => {
+  await page.goto("/about");
+  const main = page.locator("main");
+  await expect(main.getByText(/^\[ .+ \]$/).first()).toBeVisible();
+  await expect(main).not.toContainText(/\|\s*Field\s*\|/);
+});
+
 test("a project detail page renders", async ({ page }) => {
   await page.goto("/projects");
   await page.locator('a[href="/projects/clear-rag"]').first().click();
   await expect(page).toHaveURL(/\/projects\/clear-rag/);
-  await expect(page.getByRole("heading", { name: "clear-rag" })).toBeVisible();
+  // Exact h1 match: writeup sections like "clear-rag Overview" are headings too
+  await expect(
+    page.getByRole("heading", { level: 1, name: "clear-rag", exact: true })
+  ).toBeVisible();
 });
 
 test("a blog post renders", async ({ page }) => {
