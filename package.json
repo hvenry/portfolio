@@ -1,5 +1,5 @@
 {
-  "name": "henry-vendittelli-portfolio",
+  "name": "portfolio",
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@10.14.0",
@@ -13,6 +13,7 @@
     "type-check": "next typegen && tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "test": "node --test \"lib/**/*.test.ts\"",
     "test:e2e": "playwright test"
   },
   "dependencies": {

@@ -113,8 +113,7 @@ export const CollapsibleTab = ({
 
   const titleBar = (
     <>
-      <span aria-hidden className="size-[7px] border border-foreground/50" />
-      <p className="mr-8 flex-1 font-display text-base font-medium uppercase tracking-[0.1em] text-foreground">
+      <p className="mr-8 flex-1 font-display text-base font-medium tracking-[0.1em] text-foreground">
         {title}
       </p>
       {collapseButton}

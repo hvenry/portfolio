@@ -1,6 +1,5 @@
 import React from "react";
 import Image from "next/image";
-import Panel from "@/components/Panel";
 import { getIconPath } from "@/lib/images";
 
 interface Experience {
@@ -31,10 +30,10 @@ function groupByName(info: Experience[]) {
 
 export default function ExperienceCard({ info }: ExperienceProps) {
   return (
-    <div className="mx-2 flex flex-col gap-5">
+    <div className="mx-2 flex flex-col gap-10">
       {groupByName(info).map(({ name, entries }) => (
-        <Panel key={name} interactive>
-          <header className="flex items-center gap-3 border-b border-line px-4 py-3 sm:px-5">
+        <section key={name}>
+          <header className="flex items-center gap-3">
             <Image
               src={getIconPath(entries[0].image)}
               alt={name}
@@ -49,7 +48,7 @@ export default function ExperienceCard({ info }: ExperienceProps) {
               href={entries[0].link}
               target="_blank"
               rel="noopener noreferrer"
-              className="link-title text-lg sm:text-xl"
+              className="link-title text-2xl sm:text-3xl"
             >
               {name}
             </a>
@@ -59,32 +58,33 @@ export default function ExperienceCard({ info }: ExperienceProps) {
               </span>
             )}
           </header>
-          <ol className="px-4 py-2 sm:px-5">
+          <ol>
             {entries.map((role, idx) => {
               const isFirst = idx === 0;
               const isLast = idx === entries.length - 1;
               return (
                 <li
                   key={`${role.position}-${role.time}`}
-                  className="relative pl-6"
+                  className="relative pl-11"
                 >
-                  {/* Timeline rail; the node at top-[26px] aligns with the title line */}
-                  {!isFirst && (
-                    <span
-                      aria-hidden
-                      className="absolute left-[3px] top-0 h-[26px] w-px bg-foreground/25"
-                    />
-                  )}
+                  {/* Timeline branch. The trunk sits at left-4, under the centre of
+                      the company icon, and turns square into this role at its
+                      vertical centre. The first branch starts level with the role
+                      title's centre rather than at the icon, so it begins at the text.
+                      Content clears the arm at pl-11, where the company name starts. */}
+                  <span
+                    aria-hidden
+                    className={`absolute bottom-1/2 left-4 w-4 border-b border-l border-foreground/30 ${
+                      isFirst ? "top-8" : "top-0"
+                    }`}
+                  />
+                  {/* Trunk carries on to the next role */}
                   {!isLast && (
                     <span
                       aria-hidden
-                      className="absolute bottom-0 left-[3px] top-[33px] w-px bg-foreground/25"
+                      className="absolute bottom-0 left-4 top-1/2 w-px bg-foreground/30"
                     />
                   )}
-                  <span
-                    aria-hidden
-                    className="absolute left-0 top-[26px] size-[7px] border border-foreground/50 bg-background"
-                  />
                   <div className="py-4">
                     <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
                       <h3 className="font-display text-base font-medium tracking-wide text-foreground sm:text-lg">
@@ -94,15 +94,13 @@ export default function ExperienceCard({ info }: ExperienceProps) {
                         {role.time}
                       </p>
                     </div>
-                    <p className="mt-1.5 text-sm leading-relaxed text-subtle">
-                      {role.desc}
-                    </p>
+                    <p className="mt-1.5 body-copy">{role.desc}</p>
                   </div>
                 </li>
               );
             })}
           </ol>
-        </Panel>
+        </section>
       ))}
     </div>
   );

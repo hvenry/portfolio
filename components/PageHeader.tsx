@@ -21,11 +21,7 @@ export default function PageHeader({
             {title}
           </h1>
         </div>
-        {description && (
-          <p className="mt-2 text-sm leading-relaxed text-subtle sm:text-base">
-            {description}
-          </p>
-        )}
+        {description && <p className="mt-2 body-copy">{description}</p>}
       </header>
     </Panel>
   );

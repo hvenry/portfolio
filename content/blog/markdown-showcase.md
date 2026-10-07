@@ -1,28 +1,29 @@
 ---
 title: "Markdown Showcase"
 date: "2026-02-14"
-description: "A comprehensive reference for every markdown feature supported by this blog — headings, code blocks, tables, lists, inline formatting, and edge cases."
+description: "A comprehensive reference for every markdown feature supported by this blog: headings, code blocks, tables, lists, inline formatting, and edge cases."
 tags: ["demo", "markdown", "reference"]
 draft: true
 ---
 
-This post is a living reference for every markdown feature my blog renders. It doubles as an edge case detector — if something looks off, this is where I'll catch it.
+This post is a living reference for every markdown feature my blog renders.
+It doubles as an edge case detector: if something looks off, this is where I'll catch it.
 
 ---
 
 ## Headings
 
-# H1 — Page Title
+# H1 - Page Title
 
-## H2 — Section
+## H2 - Section
 
-### H3 — Subsection
+### H3 - Subsection
 
-#### H4 — Detail
+#### H4 - Detail
 
-##### H5 — Fine Print
+##### H5 - Fine Print
 
-###### H6 — Smallest
+###### H6 - Smallest
 
 Adjacent headings with no body text between them:
 
@@ -36,11 +37,18 @@ Adjacent headings with no body text between them:
 
 ## Paragraphs and Inline Formatting
 
-A regular paragraph with **bold**, _italic_, **_bold italic_**, and `inline code`. You can also combine them: **this is bold with `code inside`** and _this is italic with `code inside`_.
+A regular paragraph with **bold**, _italic_, **_bold italic_**, and `inline code`.
+You can also combine them: **this is bold with `code inside`** and _this is italic with `code inside`_.
 
-A second paragraph to confirm spacing between paragraphs is consistent. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore.
+A second paragraph to confirm spacing between paragraphs is consistent.
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore.
 
-A very long paragraph to test word wrapping and line height. The quick brown fox jumped over the lazy dog. The quick brown fox jumped over the lazy dog. The quick brown fox jumped over the lazy dog. The quick brown fox jumped over the lazy dog. The quick brown fox jumped over the lazy dog.
+A very long paragraph to test word wrapping and line height.
+The quick brown fox jumped over the lazy dog.
+The quick brown fox jumped over the lazy dog.
+The quick brown fox jumped over the lazy dog.
+The quick brown fox jumped over the lazy dog.
+The quick brown fox jumped over the lazy dog.
 
 ~~Strikethrough text~~ works via remark-gfm.
 
@@ -339,7 +347,12 @@ pnpm dev
 
 ## Inline Code Edge Cases
 
-Using `backticks` in a sentence. A path like `/Users/hvenry/dev/portfolio`. A command like `pnpm run build`. A generic type like `Promise<string | null>`. A JSX element like `<Component />`. A variable like `myVariable`.
+Using `backticks` in a sentence.
+A path like `/Users/hvenry/dev/portfolio`.
+A command like `pnpm run build`.
+A generic type like `Promise<string | null>`.
+A JSX element like `<Component />`.
+A variable like `myVariable`.
 
 ---
 
@@ -381,4 +394,5 @@ _Italic that spans **bold inside** it_ is also valid.
 
 ---
 
-That's the full showcase. If any element above looks wrong, that's your edge case to fix.
+That's the full showcase.
+If any element above looks wrong, that's your edge case to fix.

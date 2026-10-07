@@ -68,10 +68,27 @@ function themeVariablesFor(mode: "dark" | "light") {
 }
 
 /**
+ * Mermaid keeps one global config and a scratch element per render, so
+ * overlapping renders clobber each other: a diagram rendered with the other
+ * theme, or one render deleting the scratch node another is still using. That
+ * happens whenever two renders start together, e.g. StrictMode running the
+ * effect twice after a client-side navigation. Every render goes through this
+ * queue instead.
+ */
+let renderQueue: Promise<unknown> = Promise.resolve();
+let renderCount = 0;
+
+function renderSerially<T>(task: () => Promise<T>): Promise<T> {
+  const run = renderQueue.then(task, task);
+  renderQueue = run.catch(() => undefined);
+  return run;
+}
+
+/**
  * Renders a mermaid diagram from a ```mermaid fenced code block.
  *
  * Mermaid is browser-only and heavy (~3MB), so it is dynamically imported
- * inside the effect — it never lands in the server bundle or the initial
+ * inside the effect, so it never lands in the server bundle or the initial
  * client chunk. Diagrams re-render when the theme flips so they stay legible
  * in both light and dark.
  */
@@ -82,7 +99,7 @@ export default function Mermaid({ chart }: { chart: string }) {
 
   // useId() emits characters that are illegal in a DOM id / CSS selector
   // (React 18 uses ":r0:", React 19 uses "«r0»"), and mermaid selects the
-  // node it renders into by id — so strip everything non-alphanumeric.
+  // node it renders into by id, so strip everything non-alphanumeric.
   const rawId = useId();
   const id = `mermaid-${rawId.replace(/[^a-zA-Z0-9]/g, "")}`;
 
@@ -94,30 +111,35 @@ export default function Mermaid({ chart }: { chart: string }) {
     let cancelled = false;
 
     (async () => {
+      // A fresh id per attempt, so a stale render never shares a scratch node
+      const renderId = `${id}-${++renderCount}`;
       try {
         const mermaid = (await import("mermaid")).default;
 
-        mermaid.initialize({
-          startOnLoad: false,
-          securityLevel: "strict",
-          theme: "base",
-          fontFamily:
-            "var(--font-sans), Inter, ui-sans-serif, system-ui, sans-serif",
-          themeVariables: themeVariablesFor(
-            resolvedTheme === "dark" ? "dark" : "light"
-          )
+        const rendered = await renderSerially(async () => {
+          if (cancelled) return null;
+          mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: "strict",
+            theme: "base",
+            fontFamily:
+              "var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif",
+            themeVariables: themeVariablesFor(
+              resolvedTheme === "dark" ? "dark" : "light"
+            )
+          });
+          return (await mermaid.render(renderId, chart.trim())).svg;
         });
-
-        const { svg: rendered } = await mermaid.render(id, chart.trim());
-        if (!cancelled) {
+        if (!cancelled && rendered !== null) {
           setSvg(rendered);
           setFailed(false);
         }
-      } catch {
+      } catch (error) {
+        console.error("Mermaid render failed:", error);
         if (!cancelled) setFailed(true);
       } finally {
         // mermaid leaves its scratch element behind when rendering throws
-        document.getElementById(`d${id}`)?.remove();
+        document.getElementById(`d${renderId}`)?.remove();
       }
     })();
 
@@ -126,7 +148,7 @@ export default function Mermaid({ chart }: { chart: string }) {
     };
   }, [chart, id, resolvedTheme]);
 
-  // Invalid diagram source — show it rather than swallowing it silently.
+  // Invalid diagram source: show it rather than swallowing it silently.
   if (failed) {
     return (
       <pre className="my-6 overflow-x-auto border border-line p-4 text-sm text-subtle">

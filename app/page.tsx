@@ -1,11 +1,10 @@
-import React from "react";
 import Image from "next/image";
 import ExperienceCard from "@/components/ExperienceCard";
-import { intro, work } from "@/data";
+import ReactMarkdown from "react-markdown";
+import { getExperience } from "@/lib/experience";
+import { getPageCopy } from "@/lib/pages";
 import Skills from "@/components/Skills";
 import Socials from "@/components/Socials";
-import Link from "next/link";
-import ProjectGrid from "@/components/ProjectGrid";
 import SectionHeading from "@/components/SectionHeading";
 import Panel from "@/components/Panel";
 import headshot from "@/public/assets/images/headshot.jpeg";
@@ -28,25 +27,9 @@ function getAge(): number {
   return age;
 }
 
-function formatBodyWithLink(
-  body: string,
-  linkText: string,
-  url: string
-): React.JSX.Element {
-  const parts = body.split(linkText);
-
-  return (
-    <>
-      {parts[0]}
-      <a href={url} className="link">
-        {linkText}
-      </a>
-      {parts[1]}
-    </>
-  );
-}
-
 export default function Page() {
+  const home = getPageCopy("home-intro");
+
   return (
     <main className="pt-8 pb-16 sm:pb-24">
       <div className="reveal mx-2">
@@ -56,7 +39,7 @@ export default function Page() {
               <Image
                 src={headshot}
                 alt="Henry Vendittelli"
-                className="size-24 border border-line p-1 sm:size-28"
+                className="size-28 border border-line p-1"
               />
               <div>
                 <div className="flex flex-col sm:flex-row sm:items-end sm:gap-3">
@@ -70,15 +53,23 @@ export default function Page() {
                     {getAge()} (he/him)
                   </p>
                 </div>
-                <p className="mt-2 text-sm leading-relaxed text-muted sm:text-base">
-                  {intro.intro}
-                </p>
+                <p className="mt-2 body-copy text-muted">{home.tagline}</p>
               </div>
             </div>
-            <p className="mt-4 text-sm leading-relaxed text-subtle">
-              {intro.description}{" "}
-              {formatBodyWithLink(intro.body, "reach out", "/reach-out")}
-            </p>
+            <ReactMarkdown
+              components={{
+                p: ({ children }) => (
+                  <p className="mt-4 body-copy">{children}</p>
+                ),
+                a: ({ href, children }) => (
+                  <a href={href} className="link">
+                    {children}
+                  </a>
+                )
+              }}
+            >
+              {home.body}
+            </ReactMarkdown>
           </div>
         </Panel>
       </div>
@@ -87,25 +78,13 @@ export default function Page() {
       </div>
       <div className="reveal reveal-2">
         <SectionHeading className="mt-8 mb-4">Work Experience</SectionHeading>
-        <ExperienceCard info={work} />
+        <ExperienceCard info={getExperience("work")} />
       </div>
       <div className="reveal reveal-3">
         <SectionHeading className="mt-12 mb-4">
           Technologies I Build With
         </SectionHeading>
         <Skills />
-      </div>
-      <div className="reveal reveal-4">
-        <SectionHeading className="mt-12 mb-6">
-          <Link
-            href="/projects"
-            className="transition-colors hover:text-subtle"
-          >
-            Project
-          </Link>{" "}
-          Demos
-        </SectionHeading>
-        <ProjectGrid />
       </div>
     </main>
   );

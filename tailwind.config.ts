@@ -8,6 +8,17 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      // Body sizes run one step larger than Tailwind's defaults; the site's
+      // reading column is wide, and 14px body copy across it was hard to read.
+      // Display sizes (3xl and up) keep their defaults so headings stay put.
+      fontSize: {
+        xs: ["0.8125rem", { lineHeight: "1.125rem" }],
+        sm: ["0.9375rem", { lineHeight: "1.375rem" }],
+        base: ["1.0625rem", { lineHeight: "1.75rem" }],
+        lg: ["1.1875rem", { lineHeight: "1.875rem" }],
+        xl: ["1.3125rem", { lineHeight: "1.875rem" }],
+        "2xl": ["1.5625rem", { lineHeight: "2.0625rem" }]
+      },
       fontFamily: {
         sans: ["var(--font-inter)", "system-ui", "-apple-system", "sans-serif"],
         display: [

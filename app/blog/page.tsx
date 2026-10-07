@@ -32,9 +32,7 @@ export default function BlogPage() {
                         {formatDate(post.date)}
                       </p>
                     </div>
-                    <p className="text-sm leading-relaxed text-subtle sm:text-base">
-                      {post.description}
-                    </p>
+                    <p className="body-copy">{post.description}</p>
                   </div>
                 </Link>
               </article>

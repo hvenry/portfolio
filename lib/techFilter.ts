@@ -2,10 +2,8 @@
  * Reads the `tech` query param. Older links may carry a comma-separated list,
  * so only the first entry is honoured.
  */
-export function parseTechFilter(
-  tech: string | string[] | undefined
-): string | null {
-  if (typeof tech !== "string") return null;
+export function parseTechFilter(tech: string | null): string | null {
+  if (!tech) return null;
   return tech.split(",").filter(Boolean)[0] ?? null;
 }
 

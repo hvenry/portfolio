@@ -6,7 +6,7 @@ import { SiLeetcode } from "react-icons/si";
 import { AiOutlineSpotify } from "react-icons/ai";
 
 const Socials = () => {
-  const style = "link-quiet size-6";
+  const style = "link-quiet size-5 sm:size-6";
 
   return (
     <>

@@ -40,13 +40,13 @@ next-env.d.ts
 # ide
 .vscode
 
-CLAUDE.md
-docs/
-
 # playwright
 test-results/
 playwright-report/
-.superpowers/
 
 # Playwright auth state (Vercel bypass cookie)
 e2e/.auth/
+
+# Unreleased writeups, kept local until the project ships (see content/projects/<slug>.md draft: true)
+content/projects/brewbuds.md
+public/assets/images/projects/brewbuds_og.png

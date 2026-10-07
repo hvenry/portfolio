@@ -1,17 +1,19 @@
-"use client";
-
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
+import { PiArrowSquareOut } from "react-icons/pi";
 import Mermaid from "./Mermaid";
-import React, { useState } from "react";
+import CopyCodeButton from "./CopyCodeButton";
+import React from "react";
 import "katex/dist/katex.min.css";
 
+// Colours are CSS variables (globals.css) so the palette follows data-theme
+// in CSS, correct on first paint without reading the theme in JS
 const codeTheme: { [key: string]: React.CSSProperties } = {
   'code[class*="language-"]': {
-    color: "#e5e7eb",
+    color: "var(--code-fg)",
     background: "none",
     fontFamily:
       'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
@@ -26,8 +28,8 @@ const codeTheme: { [key: string]: React.CSSProperties } = {
     hyphens: "none"
   },
   'pre[class*="language-"]': {
-    color: "#e5e7eb",
-    background: "#0a0a0a",
+    color: "var(--code-fg)",
+    background: "var(--code-bg)",
     fontFamily:
       'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
     fontSize: "1em",
@@ -43,37 +45,37 @@ const codeTheme: { [key: string]: React.CSSProperties } = {
     margin: 0,
     overflow: "auto"
   },
-  comment: { color: "#6b7280" },
-  prolog: { color: "#6b7280" },
-  doctype: { color: "#6b7280" },
-  cdata: { color: "#6b7280" },
-  punctuation: { color: "#e5e7eb" },
-  property: { color: "#7dd3fc" },
-  tag: { color: "#22d3ee" },
-  boolean: { color: "#f472b6" },
-  number: { color: "#fbbf24" },
-  constant: { color: "#f472b6" },
-  symbol: { color: "#f472b6" },
-  deleted: { color: "#f87171" },
-  selector: { color: "#4ade80" },
-  "attr-name": { color: "#7dd3fc" },
-  string: { color: "#4ade80" },
-  char: { color: "#4ade80" },
-  builtin: { color: "#7dd3fc" },
-  inserted: { color: "#4ade80" },
-  operator: { color: "#e5e7eb" },
-  entity: { color: "#fbbf24", cursor: "help" },
-  url: { color: "#22d3ee" },
-  ".language-css .token.string": { color: "#fbbf24" },
-  ".style .token.string": { color: "#fbbf24" },
-  atrule: { color: "#f472b6" },
-  "attr-value": { color: "#4ade80" },
-  keyword: { color: "#f472b6" },
-  function: { color: "#7dd3fc" },
-  "class-name": { color: "#fbbf24" },
-  regex: { color: "#fbbf24" },
-  important: { color: "#f472b6", fontWeight: "bold" },
-  variable: { color: "#e5e7eb" },
+  comment: { color: "var(--code-comment)" },
+  prolog: { color: "var(--code-comment)" },
+  doctype: { color: "var(--code-comment)" },
+  cdata: { color: "var(--code-comment)" },
+  punctuation: { color: "var(--code-fg)" },
+  property: { color: "var(--code-blue)" },
+  tag: { color: "var(--code-cyan)" },
+  boolean: { color: "var(--code-pink)" },
+  number: { color: "var(--code-amber)" },
+  constant: { color: "var(--code-pink)" },
+  symbol: { color: "var(--code-pink)" },
+  deleted: { color: "var(--code-red)" },
+  selector: { color: "var(--code-green)" },
+  "attr-name": { color: "var(--code-blue)" },
+  string: { color: "var(--code-green)" },
+  char: { color: "var(--code-green)" },
+  builtin: { color: "var(--code-blue)" },
+  inserted: { color: "var(--code-green)" },
+  operator: { color: "var(--code-fg)" },
+  entity: { color: "var(--code-amber)", cursor: "help" },
+  url: { color: "var(--code-cyan)" },
+  ".language-css .token.string": { color: "var(--code-amber)" },
+  ".style .token.string": { color: "var(--code-amber)" },
+  atrule: { color: "var(--code-pink)" },
+  "attr-value": { color: "var(--code-green)" },
+  keyword: { color: "var(--code-pink)" },
+  function: { color: "var(--code-blue)" },
+  "class-name": { color: "var(--code-amber)" },
+  regex: { color: "var(--code-amber)" },
+  important: { color: "var(--code-pink)", fontWeight: "bold" },
+  variable: { color: "var(--code-fg)" },
   bold: { fontWeight: "bold" },
   italic: { fontStyle: "italic" }
 };
@@ -85,67 +87,26 @@ function CodeBlock({
   language: string;
   codeString: string;
 }) {
-  const [copied, setCopied] = useState(false);
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(codeString);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   return (
     <div
       className="my-6 overflow-hidden"
       style={{
-        background: "#0a0a0a",
-        border: "1px solid #3f3f46"
+        background: "var(--code-bg)",
+        border: "1px solid var(--code-border)"
       }}
     >
       {language && (
         <div
           className="flex items-center justify-between px-3 py-1.5"
           style={{
-            borderBottom: "1px solid #3f3f46",
-            background: "#18181b"
+            borderBottom: "1px solid var(--code-border)",
+            background: "var(--code-header-bg)"
           }}
         >
-          <span className="text-[#71717a] text-xs font-mono">{language}</span>
-          <button
-            onClick={copyToClipboard}
-            className="text-[#71717a] hover:text-[#a1a1aa] transition-colors"
-            title="Copy code"
-          >
-            {copied ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-              </svg>
-            )}
-          </button>
+          <span className="text-[color:var(--code-label)] text-xs font-mono">
+            {language}
+          </span>
+          <CopyCodeButton code={codeString} />
         </div>
       )}
       <SyntaxHighlighter
@@ -158,10 +119,10 @@ function CodeBlock({
           padding: "1rem 1.5rem",
           fontSize: "0.875rem",
           lineHeight: "1.7",
-          background: "#0a0a0a",
+          background: "var(--code-bg)",
           border: "none",
           boxShadow: "none",
-          color: language ? undefined : "#a1a1aa"
+          color: language ? undefined : "var(--code-plain)"
         }}
       >
         {codeString}
@@ -241,8 +202,9 @@ export default function BlogContent({ content }: { content: string }) {
             const isBlock = rawString.includes("\n") || !!language;
 
             if (!isBlock) {
+              // Inverts per theme: a near-black chip on light, near-white on dark
               return (
-                <code className="bg-[#1a1a1a] px-1.5 py-0.5 text-sm text-[#e5e7eb]">
+                <code className="bg-foreground/90 px-1.5 py-0.5 text-sm text-background">
                   {children}
                 </code>
               );
@@ -257,16 +219,28 @@ export default function BlogContent({ content }: { content: string }) {
           },
           // Let CodeBlock handle its own wrapper; pre is redundant here
           pre: ({ children }) => <>{children}</>,
-          a: ({ children, href }) => (
-            <a
-              href={href}
-              className="link"
-              target={href?.startsWith("http") ? "_blank" : undefined}
-              rel={href?.startsWith("http") ? "noopener noreferrer" : undefined}
-            >
-              {children}
-            </a>
-          ),
+          a: ({ children, href }) => {
+            const external = href?.startsWith("http") ?? false;
+            return (
+              <a
+                href={href}
+                className="link"
+                target={external ? "_blank" : undefined}
+                rel={external ? "noopener noreferrer" : undefined}
+              >
+                {children}
+                {external && (
+                  <>
+                    <PiArrowSquareOut
+                      aria-hidden
+                      className="ml-0.5 inline-block size-[0.85em] align-[-0.1em]"
+                    />
+                    <span className="sr-only"> (opens in a new tab)</span>
+                  </>
+                )}
+              </a>
+            );
+          },
           blockquote: ({ children }) => (
             <blockquote className="border-l-2 border-foreground/40 pl-6 py-2 italic my-6 bg-foreground/5">
               {children}
@@ -293,8 +267,13 @@ export default function BlogContent({ content }: { content: string }) {
               {children}
             </thead>
           ),
+          // Owns every row border: prose also gives each body row a light
+          // grey bottom border, which stacked with divide-y doubled the line
+          // under the first row
           tbody: ({ children }) => (
-            <tbody className="divide-y divide-line">{children}</tbody>
+            <tbody className="[&>tr:last-child]:border-b-0 [&>tr]:border-b [&>tr]:border-line">
+              {children}
+            </tbody>
           ),
           tr: ({ children }) => (
             <tr className="hover:bg-foreground/5 transition-colors">
