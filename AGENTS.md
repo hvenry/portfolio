@@ -59,7 +59,7 @@ docs/                concept docs, indexed below
 - Before adding or editing a project, blog post, experience card or page copy, or changing `lib/content.ts`, `lib/projects.ts`, `lib/posts.ts`, `lib/experience.ts` or `lib/pages.ts`, read `docs/content-system.md`.
 - Before changing how markdown renders (code blocks, Mermaid, LaTeX, tables), read `docs/markdown-rendering.md`.
 - Before changing tech badges, icons, or the `/projects` filter, read `docs/tech-filter.md`.
-- Before changing the root layout, navbar, footer, or the `/random` canvas, read `docs/layout-and-navigation.md`.
+- Before changing the root layout, navbar, footer, page metadata, share cards (`lib/og.tsx`), or the `/random` canvas, read `docs/layout-and-navigation.md`.
 - Before changing colours, fonts, breakpoints, or theme switching, read `docs/styling-and-theme.md`.
 - Before changing the `/rock` guestbook, Clerk, or `proxy.ts`, read `docs/guestbook.md`.
 - Before changing `prisma/schema.prisma` or anything touching the database, read `docs/database.md`.

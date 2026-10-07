@@ -35,7 +35,7 @@ flowchart LR
 - Sorted by `order` (lower first); a missing `order` sorts last.
 - Cards receive a `ProjectSummary` (via `toProjectSummary`), never the full body, to keep client payloads small.
 - Frontmatter reference and the writeup shape: `content/projects/_TEMPLATE.md`.
-- Images go in `public/assets/images/projects/` at 1200x630; `imageLight` is an optional light-theme variant.
+- Images go in `public/assets/images/projects/` at 1200x630; `imageLight` is an optional light-theme variant. `image` also fills the project's share card (see [Layout and navigation](layout-and-navigation.md)).
 
 ### Experience
 
