@@ -1,77 +1,76 @@
 ---
 title: "Simple Shell"
 bodyTitle: "Simple C Shell"
-summary: "A Unix shell written in C to learn the read-parse-execute loop, process creation with fork and exec, and why some commands can't be programs."
+summary: "A minimal Unix shell in C that reads, parses and runs commands with fork, execvp and waitpid, plus four in-process builtins."
 technologies:
   - "C"
   - "Unix"
   - "Makefile"
+  - "GCC"
 github: "https://github.com/hvenry/simple-c-shell"
 image: "simple_c_shell_og.png"
 imageLight: "simple_c_shell_og_light.png"
 order: 5
-year: "2024"
-role: "Solo project"
 ---
 
-Every terminal session you've ever used runs the same loop: print a prompt, read a line, split it into words, turn those words into a running process, wait, repeat. I wrote this shell in C to see that loop with nothing on top of it: about 320 lines, no libraries beyond libc.
+All terminal sessions run the same loop: print a prompt, read a line, split it into words, turn those words into a running process, wait, repeat.
 
-## The loop
+I wrote this shell in C to see that loop with nothing on top of it - about 320 lines, no libraries beyond libc. Why? I was taking a course on systems-level programming ([CISC 220 at Queen's University](https://www.cs.queensu.ca/undergraduate/courses/CISC-220)) and while the programming was making sense (bash and C), I did not really understand the system. So I built the minimal, _simple_, version of it!
+
+## Simple C Shell Overview
+
+- `simple-c-shell` runs any program on `PATH`, plus the builtins `cd`, `help`, `exit` and `history`
+- The core of it is a read-parse-execute loop that checks a builtin table first, then falls back to `fork`, `execvp` and `waitpid`
 
 ```mermaid
 flowchart LR
-    A["prompt<br/>read_line()"] --> B["split_line()<br/>→ args[]"]
+    A["prompt<br/>read_line()"] --> H["add_to_history()"]
+    H --> B["split_line()<br/>args[]"]
     B --> C{"builtin?"}
     C -->|yes| D["run in the<br/>shell itself"]
-    C -->|no| E["fork + exec<br/>+ waitpid"]
-    D -.->|loop| A
-    E -.->|loop| A
+    C -->|no| E["fork + execvp<br/>+ waitpid"]
+    D -.->|"returns 1"| A
+    E -.-> A
 ```
 
-Each pass frees both allocations and checks a status code: `1` keeps looping, `0` means `exit` ran. `read_line()` grows a buffer with `realloc` as it reads characters, then `split_line()` runs `strtok` over it to produce the `args` array. One detail took me a while to appreciate: `strtok` doesn't copy anything. It writes null bytes into the original line and hands back pointers into that same buffer, which is why `args` doesn't own its strings, and why both frees have to happen together at the bottom of the loop.
+## How it works
 
-## fork, exec, wait
+`main` calls one loop that repeats until a builtin returns 0.
 
-This is the part you can't learn by reading a real shell's source, because it's buried under too much else. Here it's about 35 lines.
+- **Read:** `read_line()` pulls characters with `getchar` into a heap buffer that grows in 1024-byte steps, stopping at newline or EOF
+- **Parse:** `split_line()` runs `strtok` over the line, splitting on whitespace into a NULL-terminated `args` array that grows in 64-pointer steps
+  - **One detail took me a while to appreciate:** `strtok` copies nothing; it writes null bytes into the line and returns pointers into it, so `args` owns no strings and both buffers are freed together at the bottom of the loop
+- **Execute:** an empty line is skipped, a name found in the builtin table runs in-process, and anything else goes to `launch()`
+- **Launch:** `fork()` returns twice (0 in the child, the child's PID in the parent); the child calls `execvp`, which only returns on failure, and the parent loops on `waitpid` until the child exits or is killed by a signal
 
-```mermaid
-sequenceDiagram
-    participant S as Shell (parent)
-    participant K as Kernel
-    participant C as Child
-    S->>K: fork()
-    K-->>C: returns 0
-    K-->>S: returns the child's PID
-    C->>K: execvp("ls", args)
-    Note over C: the process image is replaced.<br/>On success execvp never returns
-    S->>K: waitpid(pid, status)
-    Note over S: blocked
-    C-->>K: exit
-    K-->>S: status
-    Note over S: WIFEXITED(status) → prompt again
-```
+### Why `cd` can't be a program
 
-`fork()` is the strange one. It returns _twice_, zero in the child and the child's PID in the parent, and that single return value is the only thing telling two now-identical processes which one they are. `execvp` then overwrites the child's process image entirely, which is why a return from it always means failure.
-
-## Why `cd` can't be a program
-
-The best thing this project taught me, and it falls straight out of the diagram above.
+Another thing this project taught me falls straight out of that last step:
 
 ```mermaid
 flowchart LR
     S["shell<br/>cwd /home"] -->|"as a program:<br/>fork + exec"| C["child<br/>chdir /tmp"]
-    C -->|"child exits, and<br/>its cwd dies with it"| X["shell<br/>still /home ✗"]
-    S -->|"as a builtin:<br/>chdir in-process"| Y["shell<br/>cwd /tmp ✓"]
+    C -->|"child exits, and<br/>its cwd dies with it"| X["shell<br/>still /home"]
+    S -->|"as a builtin:<br/>chdir in-process"| Y["shell<br/>cwd /tmp"]
 ```
 
-A child process gets a _copy_ of the working directory. Change it and the change dies when the child exits. So `cd` has to run inside the shell itself, and the same goes for `exit`, and for anything else that mutates shell state. That's the whole reason builtins exist, and it's why the dispatch table gets checked _before_ `fork` is ever called. The table is a pair of parallel arrays, `builtin_str[]` of names next to `builtin_func[]` of function pointers, which is how C does this without objects.
+- A child gets a copy of the working directory, so a forked `cd` changes it and the change vanishes when the child exits
+- `exit` has to stop the parent's loop, and `history` reads memory a child cannot see, so all four run inside the shell
+- That is why the builtin table is checked before `fork` is ever called
+- The table is two index-aligned arrays, `builtin_str[]` of names and `builtin_func[]` of function pointers, which is how C does dispatch without objects
 
-## Where it stops
+## What I tried
 
-Commands are split on whitespace and nothing else, and that one decision sets the ceiling. Quoting, `$VAR`, globbing, pipes and redirection all need a real tokenizer that tracks quote state, feeding a grammar that builds a tree of pipelines and redirections, not `strtok`. Interactive handling stops early too: Ctrl-C reaches the shell instead of only the child, because the child is never put in its own process group.
+- **`getchar` instead of `getline`:** kept to show manual buffer growth; `getline` would be shorter and is the obvious swap
+- **History as a fixed array:** 100 `strdup`'d lines; when full it frees the oldest and shifts the rest down, O(n) per insert but trivial to read
+- **Recording history before parsing:** simple, but it means blank lines land in history too, and numbering restarts at 1 once the buffer wraps
+- **One file per builtin:** split out behind a shared header, but registering one still touches four places: `builtin.h`, the new `.c` file, the table in `help.c`, and the `Makefile`
 
-Both are the natural next version. The fork/exec core underneath wouldn't have to change.
+## Where it stops (it's a fair amount)
 
-## Background
+- **Whitespace is the only syntax:** no quoting, `$VAR`, globbing, pipes or redirection, so `echo "a b"` passes `"a` and `b"`
+- **No signal handling:** the shell installs no SIGINT handler, so Ctrl-C kills the shell itself; a stopped child (Ctrl-Z) leaves the wait loop waiting and hangs the prompt
+- **Rough edges:** EOF (Ctrl-D or piped input) loops forever printing the prompt, child exit status is discarded (no `$?`), and `cd` with no argument errors instead of going to `$HOME`
+- **Next:** a drafted spec adds unit and end-to-end tests, strict warnings, sanitizers and CI on Linux and macOS, and fixes the EOF loop; new shell features stay out of scope
 
-Built from Stephen Brennan's [lsh walkthrough](https://brennan.io/2015/01/16/write-a-shell-in-c/), then extended with a `history` builtin and split into per-builtin translation units behind a shared header, so adding a command means adding a file rather than editing one.
+This project was built from Stephen Brennan's [lsh walkthrough](https://brennan.io/2015/01/16/write-a-shell-in-c/), then extended with the `history` builtin and split into per-builtin translation units.
