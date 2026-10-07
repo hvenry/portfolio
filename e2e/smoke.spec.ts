@@ -47,6 +47,29 @@ test("a project detail page renders", async ({ page }) => {
   ).toBeVisible();
 });
 
+test("a project page shares its own card and URL", async ({
+  page,
+  request
+}) => {
+  await page.goto("/projects/clear-rag");
+  const meta = (property: string) =>
+    page.locator(`meta[property="${property}"]`).getAttribute("content");
+
+  expect(await meta("og:url")).toMatch(/\/projects\/clear-rag$/);
+  expect(await meta("og:title")).toContain("clear-rag");
+
+  // og:image is absolute to the production domain (metadataBase), which a
+  // preview deploy may not serve yet, so fetch its path from this server
+  const image = new URL((await meta("og:image")) ?? "");
+  expect(image.pathname).toBe("/projects/clear-rag/opengraph-image");
+  const response = await request.get(image.pathname + image.search);
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toBe("image/png");
+  // PNG IHDR: width and height are big-endian uint32s at bytes 16 and 20
+  const png = await response.body();
+  expect([png.readUInt32BE(16), png.readUInt32BE(20)]).toEqual([1200, 630]);
+});
+
 test("a blog post renders", async ({ page }) => {
   await page.goto("/blog");
   const posts = page.locator('a[href^="/blog/"]');

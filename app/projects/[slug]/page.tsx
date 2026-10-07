@@ -26,9 +26,24 @@ export async function generateMetadata({
   const project = getProjectBySlug(slug);
   if (!project) return {};
 
+  // Without its own openGraph and twitter blocks a project inherits the home
+  // page's, so a shared link would show the home title and URL
+  const title = `${project.bodyTitle} - henryvendittelli.com`;
   return {
     title: `${project.title} Project - henryvendittelli.com`,
-    description: project.summary
+    description: project.summary,
+    openGraph: {
+      type: "article",
+      siteName: "henryvendittelli.com",
+      title,
+      description: project.summary,
+      url: `/projects/${slug}`
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: project.summary
+    }
   };
 }
 
