@@ -37,6 +37,7 @@ Run locally with `pnpm test:e2e` against `pnpm dev` on :3000, or set `BASE_URL`.
 ## Tech
 
 - GitHub Actions (Node, pnpm, frozen lockfile)
+- Node 24: `.nvmrc` sets it for CI (`node-version-file`) and local version managers; `engines.node` in `package.json` sets it for Vercel and overrides the Node version in the Vercel project settings
 - Playwright (Chromium)
 - Vercel git integration and Deployment Protection
 - Neon x Vercel integration
