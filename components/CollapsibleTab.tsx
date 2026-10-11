@@ -61,7 +61,7 @@ export const CollapsibleTab = ({
   children,
   initialPosition
 }: CollapsibleTabProps) => {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState<{ x: number; y: number }>(
     initialPosition
   );
@@ -79,6 +79,17 @@ export const CollapsibleTab = ({
 
   // Distinguishes a title-bar click (toggle) from a drag (no toggle)
   const dragMovedRef = useRef(false);
+
+  // Dragging across the page otherwise text-selects the header and anything
+  // the cursor passes over; suppress selection for the whole page mid-drag
+  const handleDragStart = () => {
+    window.getSelection()?.removeAllRanges();
+    document.body.classList.add("select-none");
+  };
+  const handleDragStop = () => {
+    document.body.classList.remove("select-none");
+  };
+  useEffect(() => handleDragStop, []);
 
   const handleDrag = (_e: DraggableEvent, data: DraggableData) => {
     dragMovedRef.current = true;
@@ -123,16 +134,21 @@ export const CollapsibleTab = ({
   // Links only work on the selected card; the first click just brings it to front
   const contentInteractive = isSmallScreen || isSelected;
 
-  // grid-rows 0fr -> 1fr animates height without measuring the content
+  // Grid tracks going 0fr -> 1fr animate height, and on the canvas width too,
+  // without measuring the content: a folded card shrinks to its title bar and
+  // grows to fit its content as it opens. On the canvas the content is laid out
+  // at its natural (w-max) width, so it never rewraps mid-animation.
   const content = (
     <div
-      className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
-        isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+      className={`grid transition-[grid-template-rows,grid-template-columns] duration-300 ease-in-out ${
+        isOpen
+          ? "grid-cols-[1fr] grid-rows-[1fr]"
+          : "grid-cols-[1fr] grid-rows-[0fr] sm:grid-cols-[0fr]"
       } ${contentInteractive ? "" : "pointer-events-none select-none"}`}
       aria-hidden={!isOpen}
     >
-      <div className="overflow-hidden">
-        <div className="p-4">{children}</div>
+      <div className="min-w-0 overflow-hidden">
+        <div className="p-4 sm:w-max">{children}</div>
       </div>
     </div>
   );
@@ -160,7 +176,9 @@ export const CollapsibleTab = ({
     <Draggable
       nodeRef={nodeRef}
       position={position}
+      onStart={handleDragStart}
       onDrag={handleDrag}
+      onStop={handleDragStop}
       disabled={isSmallScreen}
       bounds={bounds}
       handle=".drag-handle"
@@ -180,7 +198,7 @@ export const CollapsibleTab = ({
         onMouseDownCapture={handleMouseDown}
       >
         <div
-          className="drag-handle flex cursor-move items-center gap-2.5 border-b border-line px-3 py-2.5"
+          className="drag-handle flex cursor-move select-none items-center gap-2.5 border-b border-line px-3 py-2.5"
           onMouseDown={() => {
             dragMovedRef.current = false;
           }}

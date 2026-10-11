@@ -209,7 +209,7 @@ const TabsContainer = () => {
             </div>
           </CollapsibleTab>
           <CollapsibleTab title="My Dog (Rocco)" initialPosition={positions[5]}>
-            <div className="flex justify-center items-center">
+            <div className="flex flex-col justify-center items-center gap-2">
               <Image
                 src={"/assets/images/rocco.png"}
                 alt="Rocco"
@@ -219,6 +219,7 @@ const TabsContainer = () => {
                 priority
                 draggable="false"
               />
+              <p className="text-base text-subtle">2015-2025</p>
             </div>
           </CollapsibleTab>
         </ZIndexProvider>
