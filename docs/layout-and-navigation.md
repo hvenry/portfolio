@@ -21,8 +21,8 @@ flowchart TB
 
 - `app/layout.tsx` sets site metadata, fonts, and providers.
 - `metadataBase` is `https://henryvendittelli.com`, so `opengraph-image.png` and `twitter-image.png` resolve to absolute URLs.
-- Project pages generate their own share card (`app/projects/[slug]/opengraph-image.tsx`, with `twitter-image.tsx` serving the same image): the home card's frame and dashed rule, the project's preview image in place of the wordmark, and `henryvendittelli.com/projects/<slug>` in place of the nav row. Cards are prerendered at build time, one per project.
-- Pages set their own `title` and `description`; detail routes use `generateMetadata`. Project pages also set their own `openGraph` and `twitter` blocks.
+- Project and blog pages generate their own share card (`app/{projects,blog}/[slug]/opengraph-image.tsx`, with `twitter-image.tsx` serving the same image): the home card's frame and dashed rule, the page's URL in place of the nav row, and in the middle the project's preview image or, for a post, its date, tags, title and description. Cards are prerendered at build time, one per page.
+- Pages set their own `title` and `description`; detail routes use `generateMetadata`. Project and blog pages also set their own `openGraph` and `twitter` blocks through `shareMetadata()`.
 
 ### Navbar
 
@@ -53,7 +53,9 @@ flowchart TB
 
 - `app/layout.tsx` - providers, metadata, column widths
 - `lib/og.tsx` - `OgFrame` and fonts for generated share cards, measured from `app/opengraph-image.png`
-- `app/projects/[slug]/opengraph-image.tsx` - per-project share card
+- `app/projects/[slug]/opengraph-image.tsx`, `app/blog/[slug]/opengraph-image.tsx` - per-page share cards
+- `lib/shareMetadata.ts` - `openGraph` and `twitter` blocks for a detail page
+- `lib/text.ts` - `truncate` and `fitFontSize` for card text
 - `components/Navbar.tsx` - header, theme toggle, mobile menu
 - `components/Footer.tsx` - footer and hidden routes
 - `components/ViewportHeightSetter.tsx` - sets `--vh` from `window.innerHeight`
@@ -66,8 +68,9 @@ flowchart TB
 - `--vh` exists because mobile browsers change `100vh` as toolbars show and hide; full-height pages use `calc(var(--vh) * 100)`.
 - The footer is a client component because it reads the pathname; a server footer would also freeze the copyright year at build time.
 - Adding a full-viewport page means adding it to `HIDDEN_ROUTES`, or the footer forces a scrollbar.
-- A route that sets no `openGraph` inherits the root layout's, including `url: "/"`, so its shared links show the home title and URL. Project pages set their own for that reason; blog posts still inherit.
-- Share cards are drawn by satori (`next/og`), which needs static `woff` fonts (from `@fontsource/oswald` and `@fontsource/inter`, not the site's `next/font` files), `display: flex` on any element with more than one child, and images as data URLs. Dashes are a repeating gradient because satori shrinks fixed-width children of an overflowing row.
+- A route that sets no `openGraph` inherits the root layout's, including `url: "/"`, so its shared links show the home title and URL. Project and blog pages set their own (`shareMetadata()`) for that reason; any new detail route should too.
+- Share cards are drawn by satori (`next/og`), which needs static `woff` fonts (from `@fontsource/oswald` and `@fontsource/inter`, not the site's `next/font` files), `display: flex` on any element with more than one child, and images as data URLs. Dashes are a repeating gradient because satori shrinks fixed-width children of an overflowing row. Satori also cannot clamp lines or shrink text to fit, so card text is truncated by length (`truncate`) and a long URL gets a smaller font (`fitFontSize`).
+- In `next dev`, an image route with `generateStaticParams` can keep serving a stale render after its imports change (a blank card, for instance); touching the route file recompiles it. Production builds are unaffected.
 - The home card stays a static PNG; `lib/og.tsx` reproduces its layout to within a few pixels, so a redesign of one should update the other.
 
 ## Related

@@ -57,7 +57,7 @@ flowchart LR
 
 - Frontmatter: `title`, `date`, `description`, `tags`, optional `draft`.
 - Sorted by `date`, newest first.
-- Each post gets its own `<title>` and description from frontmatter.
+- Each post gets its own `<title>`, description and share card from frontmatter (see [Layout and navigation](layout-and-navigation.md)).
 
 ### Static content
 

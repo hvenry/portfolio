@@ -2,7 +2,14 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { ImageResponse } from "next/og";
 import { getAllProjectSlugs, getProjectBySlug } from "@/lib/projects";
-import { OG_COLORS, OG_LAYOUTS, OG_SIZE, OgFrame, loadOgFonts } from "@/lib/og";
+import {
+  OG_LAYOUTS,
+  OG_SIZE,
+  OgFrame,
+  OgText,
+  OgUrl,
+  loadOgFonts
+} from "@/lib/og";
 
 // The home card's frame with the project's preview image in place of the
 // wordmark, and the project's own URL in place of the nav row
@@ -46,17 +53,7 @@ export default async function Image({
   const width = Math.round((height * OG_SIZE.width) / OG_SIZE.height);
 
   return new ImageResponse(
-    <OgFrame
-      layout={layout}
-      footer={
-        <>
-          <div style={{ color: OG_COLORS.dim }}>henryvendittelli.com</div>
-          <div
-            style={{ color: OG_COLORS.foreground }}
-          >{`/projects/${slug}`}</div>
-        </>
-      }
-    >
+    <OgFrame layout={layout} footer={<OgUrl path={`/projects/${slug}`} />}>
       {preview ? (
         <div
           style={{ display: "flex", width: "100%", justifyContent: "center" }}
@@ -71,35 +68,10 @@ export default async function Image({
           />
         </div>
       ) : (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            marginTop: 26,
-            color: OG_COLORS.foreground
-          }}
-        >
-          <div
-            style={{
-              fontFamily: "Oswald",
-              fontWeight: 700,
-              fontSize: 92,
-              lineHeight: 1
-            }}
-          >
-            {project?.bodyTitle ?? slug}
-          </div>
-          <div
-            style={{
-              fontFamily: "Inter",
-              fontSize: 30,
-              color: OG_COLORS.muted,
-              marginTop: 22
-            }}
-          >
-            {project?.summary ?? ""}
-          </div>
-        </div>
+        <OgText
+          title={project?.bodyTitle ?? slug}
+          description={project?.summary}
+        />
       )}
     </OgFrame>,
     { ...OG_SIZE, fonts: await loadOgFonts() }

@@ -5,6 +5,7 @@ import { getPostBySlug, getAllPostSlugs } from "@/lib/posts";
 import CopyUrlButton from "@/components/CopyUrlButton";
 import { formatDate } from "@/lib/date";
 import BlogContent from "@/components/BlogContent";
+import { shareMetadata } from "@/lib/shareMetadata";
 
 type Params = Promise<{ slug: string }>;
 
@@ -26,7 +27,12 @@ export async function generateMetadata({
 
   return {
     title: `${post.title} - henryvendittelli.com`,
-    description: post.description
+    description: post.description,
+    ...shareMetadata({
+      title: `${post.title} - henryvendittelli.com`,
+      description: post.description,
+      path: `/blog/${slug}`
+    })
   };
 }
 
