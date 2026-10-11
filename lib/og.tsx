@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import type { ReactNode } from "react";
+import { fitFontSize, truncate } from "@/lib/text";
 
 // Shared frame for generated Open Graph images. The frame, ticks, rule style
 // and text match app/opengraph-image.png (the home card), so project cards read
@@ -216,6 +217,96 @@ export function OgFrame({
       >
         {footer}
       </div>
+    </div>
+  );
+}
+
+/**
+ * Footer row for a page card: the domain dimmed, the page's path in white.
+ * Oswald 600 averages about 0.43em per glyph, so a long path shrinks below
+ * the layout's footer size instead of running past the column.
+ */
+export function OgUrl({
+  path: pagePath,
+  layout = OG_LAYOUTS.project
+}: {
+  path: string;
+  layout?: OgLayout;
+}) {
+  const fontSize = fitFontSize(`henryvendittelli.com${pagePath}`, {
+    max: layout.footer.size,
+    width: COLUMN.right - COLUMN.left,
+    em: 0.43
+  });
+  return (
+    <>
+      <div style={{ color: OG_COLORS.dim, fontSize }}>henryvendittelli.com</div>
+      <div style={{ color: OG_COLORS.foreground, fontSize }}>{pagePath}</div>
+    </>
+  );
+}
+
+/**
+ * Text in place of a preview image: an optional meta line, a title of up to
+ * two lines, and a description of up to three, centred in the content box.
+ * Inputs are truncated by length because satori has no reliable line clamp.
+ */
+export function OgText({
+  title,
+  description,
+  meta
+}: {
+  title: string;
+  description?: string;
+  meta?: string;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        width: "100%",
+        height: "100%"
+      }}
+    >
+      {meta && (
+        <div
+          style={{
+            fontFamily: "Oswald",
+            fontWeight: 600,
+            fontSize: 28,
+            color: OG_COLORS.dim,
+            marginBottom: 18
+          }}
+        >
+          {truncate(meta, 60)}
+        </div>
+      )}
+      <div
+        style={{
+          fontFamily: "Oswald",
+          fontWeight: 700,
+          fontSize: 84,
+          lineHeight: 1.05,
+          color: OG_COLORS.foreground
+        }}
+      >
+        {truncate(title, 40)}
+      </div>
+      {description && (
+        <div
+          style={{
+            fontFamily: "Inter",
+            fontSize: 30,
+            lineHeight: 1.4,
+            color: OG_COLORS.muted,
+            marginTop: 24
+          }}
+        >
+          {truncate(description, 150)}
+        </div>
+      )}
     </div>
   );
 }

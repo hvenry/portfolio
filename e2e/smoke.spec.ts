@@ -82,6 +82,27 @@ test("a blog post renders", async ({ page }) => {
   await expect(page).toHaveURL(/\/blog\/.+/);
 });
 
+test("a blog post shares its own card and URL", async ({ page, request }) => {
+  await page.goto("/blog");
+  const posts = page.locator('a[href^="/blog/"]');
+  // Draft-only blogs have no posts in production builds
+  test.skip((await posts.count()) === 0, "no published blog posts");
+  const href = (await posts.first().getAttribute("href"))!;
+
+  await page.goto(href);
+  const meta = (property: string) =>
+    page.locator(`meta[property="${property}"]`).getAttribute("content");
+  expect(await meta("og:url")).toMatch(new RegExp(`${href}$`));
+
+  // og:image is absolute to the production domain (metadataBase), which a
+  // preview deploy may not serve yet, so fetch its path from this server
+  const image = new URL((await meta("og:image")) ?? "");
+  expect(image.pathname).toBe(`${href}/opengraph-image`);
+  const response = await request.get(image.pathname + image.search);
+  expect(response.status()).toBe(200);
+  expect(response.headers()["content-type"]).toBe("image/png");
+});
+
 test("navbar navigates to about", async ({ page }) => {
   await page.goto("/");
   await page.locator('a[href="/about"]').first().click();
